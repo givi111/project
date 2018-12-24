@@ -1,0 +1,178 @@
+<!doctype <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>My Legendary snake </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<style>
+body {
+  text-align:center;
+  font-family:helvetica;
+  background-color:coral;
+}
+canvas {
+  border: 10px solid gray;
+}
+</style>
+<script>
+alert("თამაშის დაწყება")
+var Game=Game|| {};
+var Keyboard=Keyboard || {}; 
+var Component=Component || {};
+ //mimartulebebis dayeneba
+Keyboard.keymap={
+  37:'left',
+  38:'up',
+  39:'right',
+  40:'down'
+};
+Game.Snake=function(elementId, conf) {
+  var canvas=document.getElementById(elementId);
+  var context=canvas.getContext("2d");
+  var snake=new Component.Snake(canvas, conf);
+  var gameDraw=new Game.Draw(context, snake);
+  // tamashis intervali
+  setInterval(function() {gameDraw.drawStage();}, snake.stage.conf.fps);
+};
+window.onload=function() {
+  var snake=new Game.Snake('stage', {fps: 60, size: 4});
+};
+Keyboard.ControllerEvents=function() {
+  var self= this;
+  this.pressKey=null;
+  this.keymap=Keyboard.keymap;
+  document.onkeydown=function(event) {
+    self.pressKey=event.which;
+  };
+  this.getKey=function() {
+    return this.keymap[this.pressKey];
+  };
+};
+//tavdapirveli magidis mdgomareoba
+Component.Stage=function(canvas, conf) {  
+  this.keyEvent=new Keyboard.ControllerEvents();
+  this.width=canvas.width;
+  this.height=canvas.height;
+  this.length=[];
+  this.sachmeli={};
+  this.qula=0;
+  this.direction='down';
+  this.conf= {
+    cw:10,
+    size:5,
+    fps:1000
+  };
+  if (typeof conf == 'object') {
+    for (var key in conf) {
+      if (conf.hasOwnProperty(key)) {
+        this.conf[key] = conf[key];
+      }
+    }
+  }
+};
+Component.Snake=function(canvas, conf) {
+  this.stage=new Component.Stage(canvas, conf);
+  this.initSnake=function() {
+    for (var i=0; i<this.stage.conf.size; i++) { 
+      // snaikis sigrzis momateba
+      this.stage.length.push({x:i,y:0});
+		}
+	};
+  this.initSnake();
+  this.initsachmeli=function() {
+    // sahcmlis ganlageba
+    this.stage.sachmeli = {
+			x: Math.round(Math.random() * (this.stage.width - this.stage.conf.cw) / this.stage.conf.cw), 
+			y: Math.round(Math.random() * (this.stage.height - this.stage.conf.cw) / this.stage.conf.cw), 
+		};
+	};
+  this.initsachmeli();
+  
+  // tamashis darestartebis mdgomareoba 
+  this.restart = function() {
+    this.stage.length=[];
+    this.stage.sachmeli={};
+    this.stage.qula=0;
+    this.stage.direction='down';
+    this.stage.keyEvent.pressKey = null;
+    this.initSnake();
+    this.initsachmeli();
+  };
+};
+//
+Game.Draw = function(context, snake) {
+  this.drawStage=function() {
+    var keyPress=snake.stage.keyEvent.getKey(); 
+    if (typeof(keyPress)!='undefined') {
+      snake.stage.direction=keyPress;
+    }
+    // sheqmna satamasho  magidis
+		context.fillStyle="black";
+		context.fillRect(0, 0, snake.stage.width, snake.stage.height);		
+    var nx=snake.stage.length[0].x;
+    var ny=snake.stage.length[0].y;  
+    switch(snake.stage.direction) {
+      case'right':
+        nx++;
+        break;
+      case'left':
+        nx--;
+        break;
+      case'up':
+        ny--;
+        break;
+      case'down':
+        ny++;
+        break;
+    }
+      // roca kedels daejaxebi
+    this.shejaxeba=function(nx,ny) {  
+    if (nx==-1 || nx==(snake.stage.width / snake.stage.conf.cw) || ny==-1 || ny==(snake.stage.height / snake.stage.conf.cw)) {
+      return true;
+    }
+    return false;    
+	} 
+    //  dasrulda tamashi
+   if(this.shejaxeba(nx,ny)==true){
+      snake.restart();
+      alert("თამაში დასრულდა");
+      return;
+    }
+    // roca sachmels shechams
+    if(nx==snake.stage.sachmeli.x && ny==snake.stage.sachmeli.y) {
+      var kudi = {x:nx, y:ny};
+      snake.stage.qula++;
+      snake.initsachmeli();
+    } else {
+      var kudi=snake.stage.length.pop();
+      kudi.x=nx;
+      kudi.y=ny;	
+    }
+    snake.stage.length.unshift(kudi);  
+      //Snakis sheqmna 
+    for (var i=0; i<snake.stage.length.length; i++) {
+      var cell= snake.stage.length[i];
+      this.drawCell(cell.x,cell.y);
+    }
+      //sachmlis sheqmna
+    this.drawCell(snake.stage.sachmeli.x, snake.stage.sachmeli.y);
+  context.fillStyle='red';  
+
+     //angarishis sheqmna 
+    context.fillText('ქულა:'+snake.stage.qula,10,(snake.stage.height -10));
+  };
+  this.drawCell = function(x, y) {
+    context.fillStyle='green';
+    context.beginPath();
+    context.arc((x*snake.stage.conf.cw + 6),(y*snake.stage.conf.cw + 6),4,0,2*Math.PI,false);    
+    context.fill();
+  };
+};
+</script>
+<h2>My Legendary Snake</h2>
+<canvas id="stage"height="400"width="520"></canvas>  
+</body>
+</html>
